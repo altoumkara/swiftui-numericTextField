@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 import UIKit
 
-struct NumericTextField: UIViewRepresentable{
-    enum NumberType: Int {
+public struct NumericTextField: UIViewRepresentable{
+    public enum NumberType: Int {
         case whole, decimal, decimalWtihGrouping, wholeWtihGrouping
         
         func isDecimal() -> Bool {
@@ -113,7 +113,7 @@ struct NumericTextField: UIViewRepresentable{
         )
     }
     
-    init(_ text: String,
+    public init(_ text: String,
          number numberBinding: Binding<String>,
          leadingAddition lAddition: String = "$",
          trailingAddition tAddition: String = "",
@@ -137,11 +137,11 @@ struct NumericTextField: UIViewRepresentable{
         log("\(Self.Type.self):::  init(_ text .. ... ...)")
     }
   
-    func makeCoordinator() -> Coordinator {
+    public func makeCoordinator() -> Coordinator {
         Coordinator(numericTextField: self)
     }
 
-    func makeUIView(context: Context) -> CustomUITextField{
+    public func makeUIView(context: Context) -> CustomUITextField{
         log("makeUIView(context: Context) CALLED-CALLED-CALLED-CALLED-CALLED-CALLED-CALLED")
         
         let textField = CustomUITextField()
@@ -166,7 +166,7 @@ struct NumericTextField: UIViewRepresentable{
         return textField
     }
     
-    func updateUIView(_ uiView: CustomUITextField, context: Context){
+    public func updateUIView(_ uiView: CustomUITextField, context: Context){
         log("updateUIView(_ uiView: CustomUITextField, context: Context) CALLED-CALLED-CALLED-CALLED-CALLED-CALLED-CALLED")
         
         uiView.placeholder = NSLocalizedString(placeholder, comment: placeholder)
@@ -210,7 +210,7 @@ struct NumericTextField: UIViewRepresentable{
         return subValue
     }
     
-    class Coordinator: NSObject, UITextFieldDelegate{
+    public class Coordinator: NSObject, UITextFieldDelegate{
         let numericTextField: NumericTextField
         
         init(numericTextField: NumericTextField) {

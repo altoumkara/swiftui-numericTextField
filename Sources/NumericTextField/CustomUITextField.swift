@@ -12,11 +12,11 @@ import Foundation
 import UIKit
 
 
-class CustomUITextField: UITextField {
-    var delagate: ((UITextField)->Void)?
+public class CustomUITextField: UITextField {
+    public var delagate: ((UITextField)->Void)?
     
     
-    override func deleteBackward(){
+    public override func deleteBackward(){
         super.deleteBackward()
         
         delagate?(self)
