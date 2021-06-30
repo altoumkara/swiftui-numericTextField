@@ -10,6 +10,10 @@ import SwiftUI
 import UIKit
 
 public struct NumericTextField: UIViewRepresentable{
+    private let maxValueDelegate : ((Bool)-> Bool)?
+    
+    private var maxAllowedNumber: NSDecimalNumber? = nil
+
     public enum NumberType: Int {
         case whole, decimal, decimalWtihGrouping, wholeWtihGrouping
         
@@ -53,11 +57,11 @@ public struct NumericTextField: UIViewRepresentable{
                     var formattedNumber = number
                     
                     /// if User is trying to enter decimal number, we allow decimal point "."  to be entered,
-                    /// if you use 'currencyFormatter.string( from: NSNumber(value: Double(number)! ) )!', the dot '.' will be removed esch time you try to enter it.
+                    /// if you use 'currencyFormatter.string( from: NSDecimalNumber(string: number )  )!', the dot '.' will be removed esch time you try to enter it.
                     if numberType.isDecimal() && number.last == "."{
                         currentTextFieldValue = number
                     }else{
-                        formattedNumber = currencyFormatter.string( from: NSNumber(value: Double(number)! ) )!
+                        formattedNumber = currencyFormatter.string( from: NSDecimalNumber(string: number ) )!
                     }
                     
                     currentTextFieldValue = "\(leadingAddition)\(formattedNumber)\(trailingAddition)"
@@ -87,6 +91,7 @@ public struct NumericTextField: UIViewRepresentable{
                 log("NumericTextField: set:::: isThisAValidANumber: \(isThisAValidANumber)  ;;;;  newValue: \(newValue) ;;;; $0: \($0)  ;;;; currentTextFieldValue: \(currentTextFieldValue)  ;;;; number: \(number) ;;;; currency: \(trailingAddition)  ::: Binding(....)")
                 
                 guard isThisAValidANumber else{
+                    let _ = maxValueDelegate?(false)
                     
                     if newValue.isEmpty{
                         number = ""
@@ -103,7 +108,17 @@ public struct NumericTextField: UIViewRepresentable{
                 
                 let newNumber = newValue.replacingOccurrences(of: ",", with: "")
                 
+                if maxAllowedNumber != nil && maxAllowedNumber!.decimalValue < NSDecimalNumber(string: newNumber ).decimalValue{
+                    
+                    if let delegate = maxValueDelegate, delegate(true){
+                        number = currentTextFieldValue
+                        
+                        return
+                    }
+                }
+                
                 if number != newNumber{
+                    let _ = maxValueDelegate?(false)
                     
                     number = newNumber
                     
@@ -117,7 +132,9 @@ public struct NumericTextField: UIViewRepresentable{
          number numberBinding: Binding<String>,
          leadingAddition lAddition: String = "$",
          trailingAddition tAddition: String = "",
-         numberType nType: NumberType = .wholeWtihGrouping) {
+         numberType nType: NumberType = .wholeWtihGrouping,
+         maxAllowedNumber maxNumber: NSDecimalNumber? = nil,
+         maxValueDelegate delegate: ((Bool)-> Bool)? = nil) {
 
         
         placeholder = text
@@ -133,6 +150,10 @@ public struct NumericTextField: UIViewRepresentable{
         trailingAddition = tAddition
 
         numberType = nType
+        
+        maxAllowedNumber = maxNumber
+        
+        maxValueDelegate = delegate
         
         log("\(Self.Type.self):::  init(_ text .. ... ...)")
     }
@@ -197,7 +218,8 @@ public struct NumericTextField: UIViewRepresentable{
     }
     
     private func addition(_ value: String) -> String {
-        let matchedCharacters = value.range(of: "[^\\d\\,]+", options: String.CompareOptions.regularExpression)
+        //macth any non digit, non-grouping separator(',') and non-decimal point character ('.')
+        let matchedCharacters = value.range(of: "[^\\d\\,\\.]+", options: String.CompareOptions.regularExpression)
         
         var subValue = ""
         if let matchedChar = matchedCharacters{
