@@ -34,7 +34,8 @@ import Foundation
  */
 let DECIMAL_NYMBER_REGGEX_PATTERN = "^[\\d]+\\.?([\\d]+)?$" //we need to escape any backslash
 /* Same as 'DECIMAL_NYMBER_REGGEX_PATTERN' but also matcher number with grouping. i.e: 1,000.12 or 12,345.44 or 1,000,000.0*/
-let DECIMAL_NYMBER_GROUPING_REGGEX_PATTERN = "^([\\d]+\\.?([\\d]+)?)+$" //we need to escape any backslash
+
+let DECIMAL_NYMBER_GROUPING_REGGEX_PATTERN = "^([\\d]+([\\,]?[\\d]+)*)+\\.?([\\d]+)?" //we need to escape any backslash
 
 /* Same as 'DECIMAL_NYMBER_REGGEX_PATTERN' but only matches whole number(decimal number is not allowed) */
 let WHOLE_NYMBER_REGGEX_PATTERN = "^[\\d]+$" //we need to escape any backslash
@@ -60,8 +61,12 @@ func isThisAValidWholeNumberWithGrouping(_ value: String) -> Bool {
 
 private extension String{
     func match(_ regex: String) -> Bool {
-        let matchedCharacters = self.range(of: regex, options: String.CompareOptions.regularExpression)
+        guard let matchedRange = self.range(of: regex, options: String.CompareOptions.regularExpression) else {
+            return false
+        }
+ 
+        let matchedPartition = String(self[matchedRange])
         
-        return matchedCharacters != nil
+        return matchedPartition.caseInsensitiveCompare(self) == .orderedSame
     }
 }
