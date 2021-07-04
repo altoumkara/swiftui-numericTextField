@@ -57,12 +57,14 @@ public struct NumericTextField: UIViewRepresentable{
                 if !number.isEmpty{
                     var formattedNumber = ""
                     
-                    /// if User is trying to enter decimal number, we allow decimal point "."  to be entered,
-                    /// if you use 'currencyFormatter.string( from: NSDecimalNumber(string: number )  )!', the dot '.' will be removed esch time you try to enter it.
-                    /// In addition, if you are trying to enter '0' after a decimal point(basically, if the '0' is tha last value after a decimal point i.e: 1.0, 1.20, 4.990 etc..),
-                    /// using ': NSDecimalNumber(string: number ) '  or  'currencyFormatter.string( from: ..  )!' will remove the that last '0' that user entered  after a decimal point. Hence, we need to
-                    /// check that  use case and bypass that as well
-                    if numberType.isDecimal() && ( number.last == "." || number.last == "0" ){
+                    /// If you are trying to enter '0' after a decimal point(basically, if the '0' is tha last value after a decimal point i.e: 1.0, 1.20, 4.990 etc..),
+                    /// using ': NSDecimalNumber(string: number ) '  or  'currencyFormatter.string( from: ..  )!' will remove the  last '0' that user entered  after a decimal point each time.
+                    /// Hence, we need to check that  use case and bypass the 'NumberFormatter'
+                    let numberHasDecimalPointAndEndWithZero = number.contains(".") && number.last == "0"
+                    
+                    /// In addition, if User is trying to enter decimal number, we allow decimal point "."  to be entered,
+                    /// if you use 'currencyFormatter.string( from: NSDecimalNumber(string: number )  )!', the dot '.' will be removed each time you try to enter it. We need to bypasss that as well.
+                    if numberType.isDecimal() && ( number.last == "." || numberHasDecimalPointAndEndWithZero ){
                         formattedNumber = number
                     }else{
                         formattedNumber = currencyFormatter.string( from: NSDecimalNumber(string: number ) )!
