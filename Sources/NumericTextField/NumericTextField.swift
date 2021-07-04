@@ -55,22 +55,7 @@ public struct NumericTextField: UIViewRepresentable{
                 var currentTextFieldValue = number
                 
                 if !number.isEmpty{
-                    var formattedNumber = ""
-                    
-                    /// If you are trying to enter '0' after a decimal point(basically, if the '0' is tha last value after a decimal point i.e: 1.0, 1.20, 4.990 etc..),
-                    /// using ': NSDecimalNumber(string: number ) '  or  'currencyFormatter.string( from: ..  )!' will remove the  last '0' that user entered  after a decimal point each time.
-                    /// Hence, we need to check that  use case and bypass the 'NumberFormatter'
-                    let numberHasDecimalPointAndEndWithZero = number.contains(".") && number.last == "0"
-                    
-                    /// In addition, if User is trying to enter decimal number, we allow decimal point "."  to be entered,
-                    /// if you use 'currencyFormatter.string( from: NSDecimalNumber(string: number )  )!', the dot '.' will be removed each time you try to enter it. We need to bypasss that as well.
-                    if numberType.isDecimal() && ( number.last == "." || numberHasDecimalPointAndEndWithZero ){
-                        formattedNumber = number
-                    }else{
-                        formattedNumber = currencyFormatter.string( from: NSDecimalNumber(string: number ) )!
-                    }
-                    
-                    currentTextFieldValue = "\(leadingAddition)\(formattedNumber)\(trailingAddition)"
+                    currentTextFieldValue = formatNumber(number: number)
                 }
                 
                 log("\(Self.Type.self):::  NumericTextField: AFTER get:::: number: \(number) ;;;; currentTextFieldValue: \(currentTextFieldValue)  ::: Binding(....)")
@@ -221,6 +206,36 @@ public struct NumericTextField: UIViewRepresentable{
         number = String(newNumber)
         
         log("AFTER::: number: \(number)  ;;;textField.text: \(textField.text ?? "nil") ;;;;newNumber: \(newNumber) ;;;;  onPressed()")
+    }
+    
+    private func formatNumber(number: String) -> String{
+        var formattedNumber = ""
+
+        let isNumberDecimal = numberType.isDecimal()
+        
+        if isNumberDecimal && number.last == "." {
+            /// if User is trying to enter decimal number, we allow decimal point "."  to be entered,
+            /// if you use 'currencyFormatter.string( from: NSDecimalNumber(string: number )  )!', the dot '.' will be removed each time you try to enter it. Hence,
+            /// to avoid that, we need to split the whole number portion from the decimal point portion before formatting and only format the whole number portion.
+            let numbs = number.split(separator: ".", maxSplits: 1)
+        
+            let wholeNumb = currencyFormatter.string( from: NSDecimalNumber( string: String(numbs[0]) ) )!
+            
+            formattedNumber = "\(wholeNumb)."
+        }else if isNumberDecimal && number.contains(".") && number.last == "0" {
+            /// If you are trying to enter '0' after a decimal point(basically, if the '0' is tha last value after a decimal point i.e: 1.0, 1.20, 4.990 etc..),
+            /// using ': NSDecimalNumber(string: number ) '  or  'currencyFormatter.string( from: ..  )!' will remove the  last '0' that user entered  after a decimal point each time.
+            /// Hence,  to avoid that, we need to split the whole number portion from the decimal point portion before formatting  and only format the whole number portion.
+            let numbs = number.split(separator: ".", maxSplits: 1)
+        
+            let wholeNumb = currencyFormatter.string( from: NSDecimalNumber( string: String(numbs[0]) ) )!
+            
+            formattedNumber = "\(wholeNumb).\( String( numbs[1] ) )"
+        }else{
+           formattedNumber = currencyFormatter.string( from: NSDecimalNumber(string: number ) )!
+        }
+        
+        return "\(leadingAddition)\(formattedNumber)\(trailingAddition)"
     }
     
     private func addition(_ value: String) -> String {
